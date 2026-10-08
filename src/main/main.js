@@ -1,6 +1,8 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import { applySecurityRules } from './security.js';
+import { registerIpcHandlers } from './ipc.js';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -16,6 +18,11 @@ const createWindow = () => {
     minHeight: 500,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
+      // The interface only talks to the system through the preload.
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      additionalArguments: [`--pandore-version=${app.getVersion()}`],
     },
   });
 
@@ -29,7 +36,11 @@ const createWindow = () => {
   }
 };
 
+applySecurityRules();
+
 app.whenReady().then(() => {
+  // User data (JSON files) stays on this computer, e.g. %APPDATA%\Pandore\data
+  registerIpcHandlers({ dataDir: path.join(app.getPath('userData'), 'data') });
   createWindow();
 
   // macOS: re-create a window when the dock icon is clicked and none is open.

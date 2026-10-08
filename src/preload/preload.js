@@ -1,3 +1,16 @@
-// oxlint-disable eslint-plugin-unicorn/no-empty-file
-// See the Electron documentation for details on how to use preload scripts:
-// https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
+// The secure bridge between the interface and the main process.
+// The interface cannot touch files or Node.js: it only sees `window.pandore`,
+// and each function below forwards one specific, controlled request.
+import { contextBridge, ipcRenderer } from 'electron';
+
+const versionArg = process.argv.find((arg) => arg.startsWith('--pandore-version='));
+
+contextBridge.exposeInMainWorld('pandore', {
+  version: versionArg ? versionArg.split('=')[1] : 'inconnue',
+
+  storage: {
+    read: (name, defaultValue = null) =>
+      ipcRenderer.invoke('storage:read', name, defaultValue),
+    write: (name, data) => ipcRenderer.invoke('storage:write', name, data),
+  },
+});

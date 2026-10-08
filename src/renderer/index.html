@@ -2,6 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <!-- Only load files that belong to the app: nothing from the Internet. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
     <title>Pandore</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
