@@ -48,6 +48,33 @@ tests/
 - Sécurité Electron : `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. L'interface ne parle au système que via le preload.
 - Les appels réseau passent par le processus principal.
 
+### Ajouter un outil
+
+Créer `src/tools/<outil>/index.js` qui exporte par défaut :
+
+```js
+export default {
+  id: 'mon-outil',          // identifiant unique (minuscules, tirets)
+  name: 'Mon outil',        // nom affiché dans le menu
+  order: 30,                // position dans le menu (10, 20, 30…)
+  mount(container) { … },   // dessine la page de l'outil dans `container`
+};
+```
+
+`src/renderer/renderer.js` découvre les outils avec `import.meta.glob` et `src/renderer/tool-registry.js` les valide et les trie : aucun autre fichier à modifier.
+
+### Stockage et pont sécurisé
+
+- L'interface n'accède au système que via `window.pandore`, défini dans `src/preload/preload.js` : `version`, `storage.read(name, defaultValue)` et `storage.write(name, data)`.
+- Les données sont stockées dans `userData/data/<name>.json` par `src/shared/storage.js`. Le nom ne peut contenir que des minuscules, des chiffres et des tirets, et l'écriture est atomique (fichier temporaire puis renommage).
+- Chaque nouveau canal IPC est déclaré dans `src/main/ipc.js` et vérifie l'expéditeur (`assertTrustedSender`).
+- Content-Security-Policy stricte dans `src/renderer/index.html` ; nouvelles fenêtres et navigation externe bloquées dans `src/main/security.js`.
+
+### Notes Windows
+
+- Si PowerShell bloque `npm` (« exécution de scripts désactivée »), utiliser `npm.cmd`.
+- npm bloque le script d'installation d'`electron-winstaller` : il faudra l'autoriser (`npm install-scripts approve electron-winstaller`) avant le premier `npm run make` sous Windows.
+
 ## Règles non négociables (légal et RGPD)
 
 - **Aucune donnée client ou personnelle dans le dépôt Git.** Le dépôt est public. Les données de l'utilisateur restent sur son ordinateur, dans `userData`.
