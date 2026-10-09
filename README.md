@@ -6,7 +6,7 @@ Pandore est une application de bureau qui regroupe les outils internes d'**AJC**
 
 | Outil | À quoi il sert | État |
 |---|---|---|
-| **Radar Prospects** | Trouver des entreprises qui ont probablement besoin d'une étude, et préparer un premier contact conforme au RGPD. | Bientôt disponible |
+| **Radar Prospects** | Trouver des entreprises qui ont probablement besoin d'une étude (signaux d'achat), suivre la prospection et préparer un premier mail conforme au RGPD. L'outil prépare, vous envoyez. | Disponible |
 | **Échéancier d'études** | Calculer toutes les échéances d'une étude, du premier RDV à la fidélisation, avec un aperçu en direct, et les exporter dans un agenda (Outlook, Google Agenda, iPhone). | Disponible |
 
 ## Vos données restent sur votre ordinateur

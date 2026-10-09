@@ -110,6 +110,27 @@ Termes à utiliser : « rétribution », « intervenant », « sélection », «
 
 **Interdits** : particuliers, démarchage téléphonique (interdit depuis août 2026), scraping de LinkedIn ou d'autres sites, envoi automatique de mails. L'outil prépare, l'humain envoie.
 
+### Décisions prises (octobre 2026, avec Guillaume)
+
+- **Constats sur l'API** (testée le 10 octobre 2026) : pas de filtre sur la date de création (filtrée localement), une seule année de finances, résultats classés par pertinence (pas par date), 25 résultats par page, 10 000 au plus. Le filtre de zone porte sur les établissements, pas sur le siège.
+- **Recherche** : 20 pages au plus (500 entreprises analysées), 4 requêtes par seconde au plus, attente `Retry-After` sur une erreur 429, User-Agent explicite. Une recherche partielle est signalée. Option « siège dans la zone uniquement », cochée par défaut. Les entreprises avec un signal d'achat sont affichées en premier.
+- **Exclusions** : associations exclues (`est_association=false`). Entrepreneurs individuels et administrations conservés.
+- **Dirigeants** : ni récupérés (`minimal=true`, sans `dirigeants`), ni affichés, ni stockés. Le mail commence par « Madame, Monsieur ».
+- **Signaux** : « créée il y a moins d'un an » ; « PME qui se développe (indice) » = PME créée il y a 1 à 7 ans, au résultat net positif au dernier exercice publié.
+- **Mail** : adapté au secteur (section NAF) et au signal, signé avec les réglages du membre. Il est bloqué (copie et ouverture) tant qu'il contient un terme interdit, un champ `[à compléter]`, ou s'il manque la mention STOP. Envoi : « Copier le mail » ou « Ouvrir dans ma messagerie » (`mailto:`). L'humain envoie toujours lui-même.
+- **Opposition** : le prospect répond STOP, le membre le passe en « refus ». Il quitte alors le suivi et seuls son SIREN et la date restent dans la liste d'opposition. Il est masqué de toute recherche.
+- **Relances** : J+7 et J+21 après le premier contact (jour ouvré suivant), exportées en .ics avec des titres neutres (SIREN, jamais le nom).
+- **Conservation** : purge au démarrage des prospects sans contact depuis 3 ans (ou ajoutés il y a 3 ans sans contact).
+- **Liens externes** : seuls la fiche `annuaire-entreprises.data.gouv.fr/entreprise/<SIREN>` et `mailto:` peuvent être ouverts (`src/main/ipc.js`).
+
+### Code de l'outil
+
+- `src/shared/vocabulary.js` : vérificateur de vocabulaire (statut non-employeur).
+- `src/main/entreprises-api.js` : appels réseau (processus principal), avec limiteur de débit.
+- `src/tools/radar-prospects/rules.js` (constantes), `search.js` (filtres, nettoyage des réponses, signaux), `mail.js`, `prospects.js` (statuts, relances, opposition, purge), `store.js` (fichier `userData/data/radar-prospects.json`), `ui/` (onglets Rechercher, Mon suivi, Réglages).
+- `src/shared/dom.js` : `el()` et `setChildren()`. Ne pas passer `null` à `replaceChildren()` : il l'affiche en texte.
+- Les tests n'utilisent que des données fictives (« EXEMPLE SAS », SIREN 123456789) : le dépôt est public.
+
 ## Outil 2 : Échéancier d'études
 
 Le chef de projet saisit les dates clés, l'outil calcule les échéances et les exporte en `.ics` (compatible Outlook, Google Agenda, iPhone).
