@@ -13,4 +13,10 @@ contextBridge.exposeInMainWorld('pandore', {
       ipcRenderer.invoke('storage:read', name, defaultValue),
     write: (name, data) => ipcRenderer.invoke('storage:write', name, data),
   },
+
+  files: {
+    // Opens the "Save as" window. Resolves to { saved, filePath }.
+    saveText: ({ defaultName, content }) =>
+      ipcRenderer.invoke('files:save-text', { defaultName, content }),
+  },
 });
