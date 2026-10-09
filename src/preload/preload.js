@@ -19,4 +19,15 @@ contextBridge.exposeInMainWorld('pandore', {
     saveText: ({ defaultName, content }) =>
       ipcRenderer.invoke('files:save-text', { defaultName, content }),
   },
+
+  radar: {
+    // Searches companies with the public API. Resolves to
+    // { companies, totalResults, analyzed, truncated }.
+    search: (filters) => ipcRenderer.invoke('radar:search', filters),
+  },
+
+  // Opens a company page of the public directory, or a mailto: link.
+  openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+
+  copyText: (text) => ipcRenderer.invoke('clipboard:write-text', text),
 });

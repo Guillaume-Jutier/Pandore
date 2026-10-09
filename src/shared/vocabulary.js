@@ -4,7 +4,11 @@
 // Patterns are written without accents: the text is compared without accents
 // and in lowercase, so "Rémunération", "REMUNERATION" and "rémunérations" all match.
 const RULES = [
-  { pattern: /\bremunerations?\b/g, term: 'rémunération', suggestion: 'rétribution' },
+  {
+    pattern: /\bremunerations?\b/g,
+    term: 'rémunération',
+    suggestion: 'rétribution',
+  },
   { pattern: /\bsalaires?\b/g, term: 'salaire', suggestion: 'rétribution' },
   { pattern: /\bsalariee?s?\b/g, term: 'salarié', suggestion: 'intervenant' },
   { pattern: /\bemployee?s?\b/g, term: 'employé', suggestion: 'intervenant' },
@@ -13,7 +17,11 @@ const RULES = [
     term: 'recrutement',
     suggestion: 'sélection',
   },
-  { pattern: /\bconsultante?s?\b/g, term: 'consultant', suggestion: 'intervenant' },
+  {
+    pattern: /\bconsultante?s?\b/g,
+    term: 'consultant',
+    suggestion: 'intervenant',
+  },
   {
     pattern: /\bcontrats? de travail\b/g,
     term: 'contrat de travail',
@@ -47,7 +55,8 @@ function simplify(text) {
   let result = '';
   for (let i = 0; i < text.length; i += 1) {
     const plain = text[i].normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
-    result += plain.length === 1 ? plain : text[i].toLowerCase()[0] ?? text[i];
+    result +=
+      plain.length === 1 ? plain : (text[i].toLowerCase()[0] ?? text[i]);
   }
   return result;
 }

@@ -37,13 +37,21 @@ export function buildSearch(filters, today) {
 
   const departements = splitList(filters.departements);
   const postalCodes = splitList(filters.postalCodes);
-  const wrongDepartements = departements.filter((code) => !DEPARTEMENT.test(code));
-  const wrongPostalCodes = postalCodes.filter((code) => !POSTAL_CODE.test(code));
+  const wrongDepartements = departements.filter(
+    (code) => !DEPARTEMENT.test(code),
+  );
+  const wrongPostalCodes = postalCodes.filter(
+    (code) => !POSTAL_CODE.test(code),
+  );
   if (wrongDepartements.length) {
-    errors.push(`Département invalide : ${wrongDepartements.join(', ')} (ex. 44).`);
+    errors.push(
+      `Département invalide : ${wrongDepartements.join(', ')} (ex. 44).`,
+    );
   }
   if (wrongPostalCodes.length) {
-    errors.push(`Code postal invalide : ${wrongPostalCodes.join(', ')} (ex. 44000).`);
+    errors.push(
+      `Code postal invalide : ${wrongPostalCodes.join(', ')} (ex. 44000).`,
+    );
   }
   if (departements.length === 0 && postalCodes.length === 0) {
     errors.push('Indiquez au moins un département ou un code postal.');
@@ -58,10 +66,13 @@ export function buildSearch(filters, today) {
 
   const nafCodes = splitList(filters.naf);
   const wrongNaf = nafCodes.filter((code) => !NAF_CODE.test(code));
-  if (wrongNaf.length) errors.push(`Code NAF invalide : ${wrongNaf.join(', ')} (ex. 62.01Z).`);
+  if (wrongNaf.length)
+    errors.push(`Code NAF invalide : ${wrongNaf.join(', ')} (ex. 62.01Z).`);
   else if (nafCodes.length) params.activite_principale = nafCodes.join(',');
 
-  const categories = (filters.categories ?? []).filter((category) => CATEGORIES[category]);
+  const categories = (filters.categories ?? []).filter(
+    (category) => CATEGORIES[category],
+  );
   if (categories.length) params.categorie_entreprise = categories.join(',');
 
   if (filters.workforce) {
@@ -71,16 +82,21 @@ export function buildSearch(filters, today) {
   }
 
   // Creation date: filtered locally on the answers
-  let createdAfter = filters.createdLastYear ? addMonths(today, -12) : filters.createdAfter || '';
+  let createdAfter = filters.createdLastYear
+    ? addMonths(today, -12)
+    : filters.createdAfter || '';
   const createdBefore = filters.createdBefore || '';
   for (const [label, value] of [
     ['Créée après le', createdAfter],
     ['Créée avant le', createdBefore],
   ]) {
-    if (value && !isValidISODate(value)) errors.push(`${label} : date invalide.`);
+    if (value && !isValidISODate(value))
+      errors.push(`${label} : date invalide.`);
   }
   if (createdAfter && createdBefore && createdAfter > createdBefore) {
-    errors.push('La date « créée après » est postérieure à la date « créée avant ».');
+    errors.push(
+      'La date « créée après » est postérieure à la date « créée avant ».',
+    );
   }
   if (!isValidISODate(createdAfter)) createdAfter = '';
 
@@ -148,8 +164,10 @@ export function detectSignals(company, today) {
 }
 
 export function matchesLocalFilters(company, signals, local) {
-  if (local.createdAfter && !(company.creationDate >= local.createdAfter)) return false;
-  if (local.createdBefore && !(company.creationDate <= local.createdBefore)) return false;
+  if (local.createdAfter && !(company.creationDate >= local.createdAfter))
+    return false;
+  if (local.createdBefore && !(company.creationDate <= local.createdBefore))
+    return false;
   if (local.onlyWithSignal && signals.length === 0) return false;
   return true;
 }

@@ -33,7 +33,9 @@ function needParagraph(signals, sectorPhrase) {
 function subjectFor(signals) {
   const services = signalServices(signals).slice(0, 2);
   const topic = services.length
-    ? services.map((service) => service[0].toUpperCase() + service.slice(1)).join(', ')
+    ? services
+        .map((service) => service[0].toUpperCase() + service.slice(1))
+        .join(', ')
     : 'Études et conseil';
   return `${topic} : l'appui d'Audencia Junior Conseil`;
 }
@@ -78,7 +80,9 @@ export function buildProspectMail({ company, signals, sender = {} }) {
 
 // Placeholders like "[Fonction]" left in the text: the member must fill them in.
 export function missingPlaceholders(text) {
-  return [...String(text).matchAll(/\[[^\]\n]{2,40}\]/g)].map((match) => match[0]);
+  return [...String(text).matchAll(/\[[^\]\n]{2,40}\]/g)].map(
+    (match) => match[0],
+  );
 }
 
 // Everything that prevents sending: forbidden words, placeholders, missing opt-out notice.
@@ -93,7 +97,9 @@ export function mailProblems({ subject, body }) {
     problems.push(`À compléter : ${placeholder}.`);
   }
   if (!body.includes('STOP')) {
-    problems.push('La mention RGPD (origine des données et réponse STOP) a été retirée : remettez-la.');
+    problems.push(
+      'La mention RGPD (origine des données et réponse STOP) a été retirée : remettez-la.',
+    );
   }
   return problems;
 }
@@ -104,5 +110,8 @@ export function mailtoUrl({ to = '', subject, body }, maxLength = 1800) {
   const encode = encodeURIComponent;
   const full = `mailto:${encode(to)}?subject=${encode(subject)}&body=${encode(body)}`;
   if (full.length <= maxLength) return { url: full, bodyIncluded: true };
-  return { url: `mailto:${encode(to)}?subject=${encode(subject)}`, bodyIncluded: false };
+  return {
+    url: `mailto:${encode(to)}?subject=${encode(subject)}`,
+    bodyIncluded: false,
+  };
 }

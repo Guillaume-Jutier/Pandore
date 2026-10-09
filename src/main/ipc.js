@@ -1,9 +1,42 @@
 // Messages the interface can send to the main process (through the preload).
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  clipboard,
+  dialog,
+  ipcMain,
+  shell,
+} from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { todayISO } from '../shared/dates.js';
 import { readJson, writeJson } from '../shared/storage.js';
+import { API } from '../tools/radar-prospects/rules.js';
+import { createRateLimiter, searchCompanies } from './entreprises-api.js';
 import { isAppUrl } from './security.js';
+
+// Shared by every search, so the API rate limit is respected app-wide.
+const waitForApiSlot = createRateLimiter({ minIntervalMs: API.minIntervalMs });
+
+// Links the interface may open outside the app: a company page on the public
+// directory, or a prepared email in the user's email app. Nothing else.
+const COMPANY_PAGE =
+  /^https:\/\/annuaire-entreprises\.data\.gouv\.fr\/entreprise\/\d{9}$/;
+const MAILTO = /^mailto:[^\s]*$/;
+const MAX_EXTERNAL_URL_LENGTH = 4000;
+
+function openExternal(url) {
+  if (
+    typeof url !== 'string' ||
+    url.length > MAX_EXTERNAL_URL_LENGTH ||
+    !(COMPANY_PAGE.test(url) || MAILTO.test(url))
+  ) {
+    throw new Error(
+      'Lien refusé : Pandore ne peut ouvrir que la fiche d’une entreprise ou un e-mail.',
+    );
+  }
+  return shell.openExternal(url);
+}
 
 // Files the interface may offer to save, and how the save dialog describes them.
 const SAVE_TYPES = {
@@ -65,5 +98,34 @@ export function registerIpcHandlers({ dataDir }) {
   ipcMain.handle('files:save-text', (event, options) => {
     assertTrustedSender(event);
     return saveTextFile(event, options ?? {});
+  });
+
+  ipcMain.handle('radar:search', async (event, filters) => {
+    assertTrustedSender(event);
+    try {
+      return await searchCompanies(filters ?? {}, {
+        today: todayISO(),
+        waitForSlot: waitForApiSlot,
+        userAgent: `Pandore/${app.getVersion()} (outil interne de la Junior-Entreprise AJC)`,
+      });
+    } catch (error) {
+      // Only our own French messages reach the interface, never raw technical errors.
+      throw new Error(
+        error.userMessage ?? 'La recherche a échoué. Réessayez plus tard.',
+      );
+    }
+  });
+
+  ipcMain.handle('shell:open-external', (event, url) => {
+    assertTrustedSender(event);
+    return openExternal(url);
+  });
+
+  ipcMain.handle('clipboard:write-text', (event, text) => {
+    assertTrustedSender(event);
+    if (typeof text !== 'string' || text.length > 100000) {
+      throw new Error('Texte à copier invalide.');
+    }
+    clipboard.writeText(text);
   });
 }

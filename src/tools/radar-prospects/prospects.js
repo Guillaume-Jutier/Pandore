@@ -1,6 +1,11 @@
 // Follow-up of prospects: statuses, reminders, opposition list, retention.
 // Pure functions, covered by tests/radar-prospects.test.js.
-import { addDays, addMonths, adjustForNonWorkingDay, isValidISODate } from '../../shared/dates.js';
+import {
+  addDays,
+  addMonths,
+  adjustForNonWorkingDay,
+  isValidISODate,
+} from '../../shared/dates.js';
 import { REMINDER_DELAYS, RETENTION_YEARS, STATUSES } from './rules.js';
 
 // Only what is needed to follow up a company (data minimisation).
@@ -51,7 +56,10 @@ export function reminders(prospect) {
   if (!isValidISODate(prospect.firstContactDate)) return [];
   return REMINDER_DELAYS.map((delay, index) => ({
     number: index + 1,
-    date: adjustForNonWorkingDay(addDays(prospect.firstContactDate, delay), 'next').date,
+    date: adjustForNonWorkingDay(
+      addDays(prospect.firstContactDate, delay),
+      'next',
+    ).date,
   })).filter((reminder) => reminder.date > prospect.lastContactDate);
 }
 
