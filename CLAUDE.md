@@ -73,7 +73,13 @@ export default {
 ### Notes Windows
 
 - Si PowerShell bloque `npm` (« exécution de scripts désactivée »), utiliser `npm.cmd`.
-- npm bloque le script d'installation d'`electron-winstaller` : il faudra l'autoriser (`npm install-scripts approve electron-winstaller`) avant le premier `npm run make` sous Windows.
+- Le script d'installation d'`electron-winstaller` (installateur Windows) est autorisé dans `package.json` (`allowScripts`).
+
+### Publication
+
+- `.github/workflows/tests.yml` : tests à chaque envoi sur `main`. `.github/workflows/release.yml` : une étiquette `vX.Y.Z` construit Windows (Squirrel `.exe`), macOS arm64 et x64 (`.zip`) et Linux (`.deb`, `.rpm`), puis crée la Release avec `gh`. L'étiquette doit correspondre à `version` dans `package.json`, sinon la construction s'arrête.
+- Les apps ne sont pas signées (certificats payants) : avertissements SmartScreen et Gatekeeper documentés dans le README. Pas de mise à jour automatique pour l'instant (à décider : `update-electron-app`, macOS exige la signature).
+- Les commits utilisent l'adresse masquée GitHub, jamais l'adresse personnelle (dépôt public).
 
 ## Règles non négociables (légal et RGPD)
 

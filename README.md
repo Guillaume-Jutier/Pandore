@@ -22,10 +22,12 @@ Pandore est une application de bureau qui regroupe les outils internes d'**AJC**
 
 1. Ouvrez la page **Releases** de ce dépôt GitHub, colonne de droite.
 2. Téléchargez le fichier correspondant à votre ordinateur :
-   - **Windows** : `Pandore-x.y.z Setup.exe`
-   - **macOS** : `Pandore-darwin-….zip`, à décompresser, puis glissez `Pandore.app` dans le dossier Applications
-   - **Linux** : `.deb` (Ubuntu, Debian) ou `.rpm` (Fedora)
+   - **Windows** : `Pandore-x.y.z Setup.exe`. L'installation se fait pour votre compte, sans droits d'administrateur, et Pandore s'ouvre tout seul à la fin.
+   - **macOS** : `Pandore-darwin-arm64-x.y.z.zip` pour les Mac à puce Apple (M1, M2…), `Pandore-darwin-x64-x.y.z.zip` pour les Mac Intel (menu  › À propos de ce Mac pour savoir). Décompressez le fichier, puis glissez `Pandore.app` dans le dossier Applications.
+   - **Linux** : `.deb` (Ubuntu, Debian) ou `.rpm` (Fedora).
 3. Lancez le fichier.
+
+**Mettre à jour** : téléchargez la nouvelle version sur la même page et installez-la par-dessus. Vos échéanciers et vos prospects sont conservés.
 
 ### ⚠️ Avertissement au premier lancement (Windows et macOS)
 
@@ -42,6 +44,12 @@ Pandore est un projet étudiant. Il n'a pas de **certificat de signature** : ce 
 
 Sur les anciennes versions de macOS, vous pouvez aussi faire un clic droit (ou Ctrl + clic) sur l'app, choisir **Ouvrir**, puis confirmer.
 
+Si macOS indique que « Pandore est endommagé », c'est le même blocage, plus strict. Ouvrez l'app **Terminal** et tapez la commande suivante, qui retire la mise en quarantaine du fichier téléchargé :
+
+```bash
+xattr -cr /Applications/Pandore.app
+```
+
 ## Pour les développeurs
 
 Prérequis : [Node.js](https://nodejs.org/) version 22.12 ou plus récente, et Git.
@@ -50,8 +58,14 @@ Prérequis : [Node.js](https://nodejs.org/) version 22.12 ou plus récente, et G
 npm install      # installe les dépendances
 npm start        # lance l'app en mode développement
 npm test         # lance les tests automatiques
-npm run make     # construit l'installateur pour votre système
+npm run make     # construit l'installateur pour votre système (dossier out/make)
 ```
+
+Publier une nouvelle version :
+
+1. Changez `version` dans `package.json` (ex. `0.2.0`), puis faites un commit.
+2. Créez et envoyez l'étiquette correspondante : `git tag v0.2.0` puis `git push origin main v0.2.0`.
+3. GitHub construit automatiquement les installateurs Windows, macOS et Linux et crée la Release (onglet **Actions** pour suivre la construction).
 
 > **Windows / PowerShell** : si `npm` affiche « l'exécution de scripts est désactivée sur ce système », utilisez `npm.cmd` à la place de `npm` (par exemple `npm.cmd start`).
 

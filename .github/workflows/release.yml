@@ -1,0 +1,93 @@
+# Pushing a tag "vX.Y.Z" builds the installers for Windows, macOS and Linux,
+# then creates the GitHub Release with them (see CLAUDE.md, "Commandes").
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Installateur ${{ matrix.name }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            arch: x64
+          - name: macOS (puce Apple)
+            os: macos-latest
+            arch: arm64
+          - name: macOS (Intel)
+            os: macos-latest
+            arch: x64
+          - name: Linux
+            os: ubuntu-latest
+            arch: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # The tag must match the version in package.json (v0.2.0 <-> "0.2.0").
+      - name: Vérifier le numéro de version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "L'étiquette $GITHUB_REF_NAME ne correspond pas à la version $VERSION de package.json."
+            exit 1
+          fi
+
+      - name: Outil rpm (paquet Fedora)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run make -- --arch=${{ matrix.arch }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pandore-${{ runner.os }}-${{ matrix.arch }}
+          # Only the files people download: installer, zip and Linux packages
+          path: |
+            out/make/**/*.exe
+            out/make/**/*.zip
+            out/make/**/*.deb
+            out/make/**/*.rpm
+          if-no-files-found: error
+
+  release:
+    name: Créer la Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publier la Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          # File names can contain spaces ("Pandore-0.1.0 Setup.exe"): keep them whole.
+          mapfile -d '' files < <(find dist -type f -print0)
+          printf '%s\n' "${files[@]}"
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Pandore $GITHUB_REF_NAME" \
+            --generate-notes \
+            --notes "Téléchargez le fichier correspondant à votre ordinateur ci-dessous (voir le README pour l'avertissement au premier lancement)." \
+            "${files[@]}"

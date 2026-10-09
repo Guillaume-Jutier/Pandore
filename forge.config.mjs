@@ -9,13 +9,20 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config = {
   packagerConfig: {
     asar: true,
+    // Lowercase program name (pandore.exe, /usr/bin/pandore), as Linux packages expect.
+    // The name shown to users stays "Pandore" (productName in package.json).
+    executableName: 'pandore',
+    appCopyright: 'Copyright (c) 2026 Guillaume Jutier — licence MIT',
   },
   rebuildConfig: {},
   makers: [
+    // Windows: Pandore-x.y.z Setup.exe (installs for the current user, no admin rights)
     new MakerSquirrel({}),
+    // macOS: zip containing Pandore.app
     new MakerZIP({}, ['darwin']),
-    new MakerRpm({}),
-    new MakerDeb({}),
+    // Linux: .rpm (Fedora) and .deb (Ubuntu, Debian)
+    new MakerRpm({ options: { homepage: 'https://junior-conseil.audencia.com' } }),
+    new MakerDeb({ options: { homepage: 'https://junior-conseil.audencia.com' } }),
   ],
   plugins: [
     new VitePlugin({
