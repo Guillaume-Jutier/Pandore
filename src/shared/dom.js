@@ -24,11 +24,23 @@ export function el(tag, props = {}, ...children) {
     }
   }
 
+  appendChildren(element, children);
+  return element;
+}
+
+// Children may be nodes, texts, lists, or null/false (skipped).
+function appendChildren(element, children) {
   for (const child of children.flat(Infinity)) {
     if (child === null || child === undefined || child === false) continue;
     element.append(child instanceof Node ? child : String(child));
   }
-  return element;
+}
+
+// Like element.replaceChildren(), but accepts the same children as el():
+// lists are flattened and null/false are skipped (never shown as "null").
+export function setChildren(element, ...children) {
+  element.replaceChildren();
+  appendChildren(element, children);
 }
 
 // "relance propale 1" -> "Relance propale 1"

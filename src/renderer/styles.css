@@ -82,13 +82,3 @@ body {
   color: var(--muted);
   max-width: 60ch;
 }
-
-.coming-soon {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #fff3df;
-  color: #8a5a10;
-  font-weight: 600;
-}

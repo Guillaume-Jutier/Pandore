@@ -1,0 +1,383 @@
+/* Radar Prospects. Colors come from src/renderer/styles.css (:root). */
+
+.rad-muted {
+  color: var(--muted);
+}
+
+.rad-small {
+  font-size: 13px;
+}
+
+.rad-error {
+  color: #b42318;
+}
+
+.rad-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 8px;
+}
+
+.rad-list {
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+/* ---------- Tabs ---------- */
+.rad-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e3e6ee;
+  margin: 20px 0 16px;
+}
+
+.rad-tab {
+  font: inherit;
+  font-size: 14px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.rad-tab:hover {
+  color: var(--text);
+}
+
+.rad-tab-active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+
+/* ---------- Boxes and fields ---------- */
+.rad-box,
+.rad-card {
+  background: #fff;
+  border: 1px solid #e3e6ee;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.rad-box h2 {
+  font-size: 17px;
+  margin: 0 0 8px;
+}
+
+.rad-search-form fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.rad-search-form legend {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.rad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 16px;
+}
+
+.rad-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.rad-field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rad-field input,
+.rad-field select,
+.rad-mail-body {
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 9px;
+  border: 1px solid #c9cfdc;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+}
+
+.rad-field input:focus,
+.rad-field select:focus,
+.rad-mail-body:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.rad-field input:disabled {
+  background: #f1f3f7;
+  color: var(--muted);
+}
+
+.rad-mail-body {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.rad-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.rad-checks-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
+/* ---------- Buttons ---------- */
+.rad-button-primary,
+.rad-button-secondary,
+.rad-button-danger,
+.rad-button-link {
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.rad-button-primary {
+  background: var(--sidebar-bg);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  font-weight: 600;
+}
+
+.rad-button-primary:hover:not(:disabled) {
+  background: var(--sidebar-active-bg);
+}
+
+.rad-button-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.rad-button-secondary {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid #c9cfdc;
+  padding: 8px 14px;
+}
+
+.rad-button-secondary:hover:not(:disabled) {
+  border-color: var(--sidebar-bg);
+}
+
+.rad-button-secondary:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.rad-button-danger {
+  background: none;
+  border: 1px solid #e7b4ae;
+  color: #b42318;
+  padding: 8px 14px;
+}
+
+.rad-button-danger:hover {
+  background: #fdf0ee;
+}
+
+.rad-button-link {
+  background: none;
+  border: none;
+  color: #2f5bb7;
+  padding: 4px 0;
+}
+
+.rad-button-link:hover {
+  text-decoration: underline;
+}
+
+.rad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.rad-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ---------- Alerts and pills ---------- */
+.rad-alert {
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin: 8px 0;
+  border-left: 4px solid;
+}
+
+.rad-alert ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.rad-alert-danger {
+  background: #fdf0ee;
+  border-color: #d64545;
+  color: #8a1c13;
+}
+
+.rad-alert-warning {
+  background: #fff6e5;
+  border-color: var(--accent);
+  color: #7a4d0b;
+}
+
+.rad-alert-success {
+  background: #e5f5ea;
+  border-color: #2e8b57;
+  color: #1d6b3a;
+}
+
+.rad-alert-info {
+  background: #e6eefc;
+  border-color: #2f5bb7;
+  color: #234a96;
+}
+
+.rad-pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.rad-pill-accent {
+  background: #e6eefc;
+  color: #234a96;
+}
+
+.rad-pill-danger {
+  background: #fdf0ee;
+  color: #b42318;
+}
+
+/* ---------- Results and prospects ---------- */
+.rad-summary {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 18px 0 6px;
+}
+
+.rad-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 10px;
+}
+
+.rad-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+}
+
+.rad-card-column {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.rad-card h3 {
+  font-size: 15px;
+  margin: 0 0 2px;
+}
+
+.rad-card p {
+  margin: 0;
+}
+
+.rad-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.rad-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.rad-signal {
+  font-size: 13px;
+  background: #fff6e5;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #7a4d0b;
+}
+
+.rad-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.rad-row-head .rad-field {
+  min-width: 160px;
+}
+
+.rad-mail {
+  border-top: 1px solid #eef0f5;
+  margin-top: 10px;
+  padding-top: 12px;
+}
+
+.rad-wide {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rad-oppositions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.rad-oppositions li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eef0f5;
+}

@@ -110,6 +110,12 @@ export function buildSearch(filters, today) {
       createdAfter,
       createdBefore: isValidISODate(createdBefore) ? createdBefore : '',
       onlyWithSignal: Boolean(filters.onlyWithSignal),
+      // The API zone filter matches any establishment: keep companies whose
+      // head office is in the zone, unless the member unticks the option.
+      headOfficeZone:
+        filters.headOfficeInZone === false
+          ? null
+          : { departements, postalCodes },
     },
     errors,
   };
@@ -122,9 +128,12 @@ export function toCompany(raw) {
   const lastYear = Object.keys(finances).sort().at(-1);
   return {
     siren: String(raw.siren),
-    name: raw.nom_complet ?? raw.nom_raison_sociale ?? 'Nom non diffusé',
+    // The legal name reads better in an email than nom_complet, which repeats
+    // acronym and trade names ("2PACE (2PACE) (2PACE)").
+    name: raw.nom_raison_sociale || raw.nom_complet || 'Nom non diffusé',
     postalCode: raw.siege?.code_postal ?? '',
     city: raw.siege?.libelle_commune ?? '',
+    departement: raw.siege?.departement ?? '',
     naf: raw.activite_principale ?? '',
     section: raw.section_activite_principale ?? '',
     category: raw.categorie_entreprise ?? '',
@@ -169,6 +178,14 @@ export function matchesLocalFilters(company, signals, local) {
   if (local.createdBefore && !(company.creationDate <= local.createdBefore))
     return false;
   if (local.onlyWithSignal && signals.length === 0) return false;
+  const zone = local.headOfficeZone;
+  if (
+    zone &&
+    !zone.departements.includes(company.departement) &&
+    !zone.postalCodes.includes(company.postalCode)
+  ) {
+    return false;
+  }
   return true;
 }
 

@@ -15,6 +15,7 @@ export function createProspect(company, signals, today) {
     name: company.name,
     postalCode: company.postalCode,
     city: company.city,
+    departement: company.departement,
     naf: company.naf,
     section: company.section,
     category: company.category,

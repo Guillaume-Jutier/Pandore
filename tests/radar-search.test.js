@@ -20,7 +20,12 @@ function rawCompany(overrides = {}) {
     categorie_entreprise: 'PME',
     tranche_effectif_salarie: '11',
     date_creation: '2022-03-01',
-    siege: { code_postal: '44000', libelle_commune: 'NANTES', adresse: '1 RUE FICTIVE 44000 NANTES' },
+    siege: {
+      code_postal: '44000',
+      libelle_commune: 'NANTES',
+      departement: '44',
+      adresse: '1 RUE FICTIVE 44000 NANTES',
+    },
     finances: { 2023: { ca: 900000, resultat_net: -1000 }, 2024: { ca: 1200000, resultat_net: 50000 } },
     dirigeants: [{ nom: 'DUPONT', prenoms: 'JEAN', date_de_naissance: '1980-01' }],
     ...overrides,
@@ -88,7 +93,7 @@ describe('buildSearch : filtres envoyés à l’API', () => {
       { departements: '44', createdAfter: '2025-01-01', createdBefore: '2025-12-31' },
       TODAY,
     );
-    expect(local).toEqual({ createdAfter: '2025-01-01', createdBefore: '2025-12-31', onlyWithSignal: false });
+    expect(local).toMatchObject({ createdAfter: '2025-01-01', createdBefore: '2025-12-31', onlyWithSignal: false });
   });
 
   it('« créée depuis moins d’un an » remplace la date de début', () => {
@@ -110,9 +115,10 @@ describe('toCompany : on ne garde que le nécessaire', () => {
   it('extrait les informations utiles et le dernier exercice publié', () => {
     expect(toCompany(rawCompany())).toEqual({
       siren: '123456789',
-      name: 'EXEMPLE SAS',
+      name: 'EXEMPLE',
       postalCode: '44000',
       city: 'NANTES',
+      departement: '44',
       naf: '62.01Z',
       section: 'J',
       category: 'PME',
@@ -165,6 +171,28 @@ describe('detectSignals : signaux d’achat', () => {
       'business plan',
       'stratégie marketing',
     ]);
+  });
+});
+
+describe('siège dans la zone', () => {
+  const nantes = toCompany(rawCompany());
+  const paris = toCompany(rawCompany({ siege: { code_postal: '75017', libelle_commune: 'PARIS', departement: '75' } }));
+
+  it('par défaut, garde seulement les sièges situés dans la zone', () => {
+    const { local } = buildSearch({ departements: '44' }, TODAY);
+    expect(matchesLocalFilters(nantes, [], local)).toBe(true);
+    expect(matchesLocalFilters(paris, [], local)).toBe(false);
+  });
+
+  it('fonctionne aussi avec un code postal', () => {
+    const { local } = buildSearch({ postalCodes: '44000' }, TODAY);
+    expect(matchesLocalFilters(nantes, [], local)).toBe(true);
+    expect(matchesLocalFilters(paris, [], local)).toBe(false);
+  });
+
+  it('option décochée : garde aussi les entreprises basées ailleurs', () => {
+    const { local } = buildSearch({ departements: '44', headOfficeInZone: false }, TODAY);
+    expect(matchesLocalFilters(paris, [], local)).toBe(true);
   });
 });
 

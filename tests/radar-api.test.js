@@ -12,7 +12,7 @@ function apiCompany(n, overrides = {}) {
     activite_principale: '62.01Z',
     categorie_entreprise: 'PME',
     date_creation: '2026-05-01',
-    siege: { code_postal: '44000', libelle_commune: 'NANTES' },
+    siege: { code_postal: '44000', libelle_commune: 'NANTES', departement: '44' },
     ...overrides,
   };
 }
