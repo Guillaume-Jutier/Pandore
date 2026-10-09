@@ -22,7 +22,7 @@ Pandore est une application de bureau qui regroupe les outils internes d'**AJC**
 
 1. Ouvrez la page **Releases** de ce dépôt GitHub, colonne de droite.
 2. Téléchargez le fichier correspondant à votre ordinateur :
-   - **Windows** : `Pandore-x.y.z Setup.exe`. L'installation se fait pour votre compte, sans droits d'administrateur, et Pandore s'ouvre tout seul à la fin.
+   - **Windows** : `Pandore-x.y.z.Setup.exe`. L'installation se fait pour votre compte, sans droits d'administrateur, et Pandore s'ouvre tout seul à la fin.
    - **macOS** : `Pandore-darwin-arm64-x.y.z.zip` pour les Mac à puce Apple (M1, M2…), `Pandore-darwin-x64-x.y.z.zip` pour les Mac Intel (menu  › À propos de ce Mac pour savoir). Décompressez le fichier, puis glissez `Pandore.app` dans le dossier Applications.
    - **Linux** : `.deb` (Ubuntu, Debian) ou `.rpm` (Fedora).
 3. Lancez le fichier.
