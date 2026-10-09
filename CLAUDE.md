@@ -140,6 +140,24 @@ Le chef de projet saisit les dates clés, l'outil calcule les échéances et les
 
 Les dates calculées doivent être couvertes par des tests.
 
+### Décisions prises (octobre 2026, avec Guillaume)
+
+Sources : ce fichier et la formation AJC « Suivi de projet » (septembre 2026).
+- **Week-ends et jours fériés** : la règle se choisit pour chaque étude (décaler au jour ouvré suivant par défaut, avancer au jour ouvré précédent, ou garder la date exacte). Elle s'applique aux actions de suivi (propale, relances, témoignage, fidélisation, passation). Les dates « au plus tard » (présentation client) sont toujours avancées. Les dates contractuelles saisies (CE, phases, PVRF) et les délais légaux (solde, garanties, garantie PVRI) ne sont jamais décalés. Les 11 jours fériés de métropole comptent, lundi de Pentecôte compris.
+- **Relances propale** : J+3 et J+10. Aucune relance après la signature de la CE.
+- **Déontologie** : interdit, alerte rouge ; sous conditions, simple avertissement qui rappelle la condition ; le lien avec un enseignement de l'école est rappelé tant qu'il n'est pas coché.
+- **PVRI** (facultatif, case par phase) : PVRI et facture intermédiaire à la fin de la phase, puis fin de garantie à J+7.
+- **Fin** : PVRF à la date saisie (sinon à la fin d'étude), avec les questionnaires de satisfaction le même jour. Solde à PVRF + 30 j.
+- **Après** : témoignage à PVRF + 14 j ; fidélisation tous les 2 ou 3 mois (choix dans la fiche, 2 par défaut) pendant 1 an ; passation 1 mois avant la fin de mandat (champ facultatif). Pas de point hebdomadaire client.
+- **Alertes de cohérence** : CE avant le RDV, phase avant la CE ou après la fin d'étude, phase dont la fin précède le début, propale envoyée sans les 3 validations.
+- **Suppression** d'un échéancier : définitive, après confirmation.
+
+### Code de l'outil
+
+- `src/shared/dates.js` (jours ouvrés, fériés, décalages), `src/shared/ics.js` (export agenda sans dépendance), `src/shared/dom.js` (`el()` pour construire les pages sans `innerHTML`).
+- `src/tools/echeancier/rules.js` : toutes les constantes métier. `schedule.js` : `computeSchedule(study)` (fonction pure). `study.js`, `store.js` (fichier `userData/data/echeancier.json`), `export.js`, `ui/` (accueil, fiche, aperçu).
+- La feuille de style d'un outil se charge avec `import cssUrl from './x.css?url'` et une balise `<link>` : la Content-Security-Policy reste stricte.
+
 ## Conventions
 
 - Code, noms de variables et commentaires en anglais ; interface et messages en français.
