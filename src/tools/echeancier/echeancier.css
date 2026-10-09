@@ -312,6 +312,26 @@
   margin-bottom: 0;
 }
 
+.ech-meeting-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* The subject takes the whole second line */
+.ech-meeting-fields .ech-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.ech-meeting-fields .ech-field:last-child input {
+  max-width: none;
+}
+
+.ech-meeting-fields .ech-field {
+  margin-bottom: 0;
+}
+
 /* ---------- Preview ---------- */
 .ech-preview {
   position: sticky;
@@ -365,6 +385,13 @@
   color: var(--muted);
   font-size: 13px;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+}
+
+.ech-event-time {
+  font-weight: 600;
+  color: var(--text);
 }
 
 .ech-event-body {

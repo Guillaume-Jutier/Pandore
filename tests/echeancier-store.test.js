@@ -95,11 +95,24 @@ describe('magasin des échéanciers', () => {
 
 describe('normalizeStudy', () => {
   it('complète une étude enregistrée par une ancienne version', () => {
-    const old = { id: 'a', propaleNumber: '2026-001', createdAt: '2026-01-01T00:00:00.000Z', ceDate: '2026-02-01' };
+    const old = {
+      id: 'a',
+      propaleNumber: '2026-001',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      ceDate: '2026-02-01',
+      deontology: { forbidden: [], conditional: [], teachingLink: true },
+      rdvChecklist: { besoins: true },
+      clientAtRisk: true,
+    };
     const study = normalizeStudy(old);
     expect(study.ceDate).toBe('2026-02-01');
     expect(study.phases).toEqual([]);
-    expect(study.deontology).toEqual({ forbidden: [], conditional: [], teachingLink: false });
+    expect(study.meetings).toEqual([]);
+    expect(study.depositRate).toBe(60);
     expect(study.fidelisationMonths).toBe(2);
+    // Fields removed in October 2026 are dropped
+    expect(study).not.toHaveProperty('deontology');
+    expect(study).not.toHaveProperty('rdvChecklist');
+    expect(study).not.toHaveProperty('clientAtRisk');
   });
 });

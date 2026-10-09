@@ -116,15 +116,10 @@ Le chef de projet saisit les dates clés, l'outil calcule les échéances et les
 
 **Avant la signature**
 - Canal d'arrivée : prospection, fidélisation, contact spontané, appel d'offre CNJE (alerte « répondre vite » : la première Junior qui répond récupère l'étude).
-- Checklist de préparation du RDV : besoins, enjeux, budget, échéancier, risques. Rappel : pas de budget précis au RDV.
-- Test de déontologie après le RDV :
-  - interdit : vente de produit, contrat de maintenance, constitution d'une base de prospects, domaine réglementé (juridique, comptable, médical) ;
-  - sous conditions : traduction (si l'école enseigne la langue), prospection (si intégrée à une étude plus complète), apport par un partenaire (clause de communication et CdC rédigé par AJC) ;
-  - obligatoire : lien avec un enseignement de l'école.
 - Propale : envoi **RDV + 48 h**, après trois cases cochées (budget validé par le Vice-trésorier, numéro demandé au Secrétaire général, relecture qualité). Relances à **envoi + 3 jours** et **envoi + 10 jours**.
 
 **Pendant l'étude**
-- Acompte : 30 % en général, 50 % si client à risque, jamais 100 %.
+- Acompte : **60 %** par défaut, taux modifiable pour chaque étude (1 à 99 %), jamais 100 %.
 - RDM du chef de projet (s'il est rétribué) : signé au plus tôt le jour de la CE.
 - RDM des intervenants : signé au plus tard au début de la phase, ne dépasse pas la fin de scolarité.
 - Pour chaque phase : alerte « avenant à signer avant le [fin de phase] ». Après la fin de phase, l'étude passe Hors-Qualité.
@@ -145,7 +140,8 @@ Les dates calculées doivent être couvertes par des tests.
 Sources : ce fichier et la formation AJC « Suivi de projet » (septembre 2026).
 - **Week-ends et jours fériés** : la règle se choisit pour chaque étude (décaler au jour ouvré suivant par défaut, avancer au jour ouvré précédent, ou garder la date exacte). Elle s'applique aux actions de suivi (propale, relances, témoignage, fidélisation, passation). Les dates « au plus tard » (présentation client) sont toujours avancées. Les dates contractuelles saisies (CE, phases, PVRF) et les délais légaux (solde, garanties, garantie PVRI) ne sont jamais décalés. Les 11 jours fériés de métropole comptent, lundi de Pentecôte compris.
 - **Relances propale** : J+3 et J+10. Aucune relance après la signature de la CE.
-- **Déontologie** : interdit, alerte rouge ; sous conditions, simple avertissement qui rappelle la condition ; le lien avec un enseignement de l'école est rappelé tant qu'il n'est pas coché.
+- **Retirés de l'outil (10 octobre 2026, à la demande de Guillaume)** : le test de déontologie et la checklist de préparation du RDV. Ne pas les réintroduire sans son accord.
+- **RDV client** : le chef de projet ajoute autant de RDV qu'il veut (date, heure facultative, objet neutre de 80 caractères maximum). Ils ne sont jamais décalés, se rangent dans l'étape correspondant à leur date et sont exportés : avec heure, événement d'1 h, rappel 1 h avant ; sans heure, journée entière.
 - **PVRI** (facultatif, case par phase) : PVRI et facture intermédiaire à la fin de la phase, puis fin de garantie à J+7.
 - **Fin** : PVRF à la date saisie (sinon à la fin d'étude), avec les questionnaires de satisfaction le même jour. Solde à PVRF + 30 j.
 - **Après** : témoignage à PVRF + 14 j ; fidélisation tous les 2 ou 3 mois (choix dans la fiche, 2 par défaut) pendant 1 an ; passation 1 mois avant la fin de mandat (champ facultatif). Pas de point hebdomadaire client.

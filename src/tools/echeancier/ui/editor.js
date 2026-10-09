@@ -4,16 +4,14 @@ import { NON_WORKING_DAY_RULES, todayISO } from '../../../shared/dates.js';
 import { icsFileName, studyToIcs } from '../export.js';
 import {
   CHANNELS,
-  DEONTOLOGY_CONDITIONAL,
-  DEONTOLOGY_FORBIDDEN,
   DELIVERABLE_TYPES,
+  DEPOSIT_RATE,
   FIDELISATION_INTERVALS,
+  MEETING_SUBJECT_MAX_LENGTH,
   PROPALE_CHECKS,
-  RDV_CHECKLIST,
-  RDV_REMINDER,
 } from '../rules.js';
 import { computeSchedule } from '../schedule.js';
-import { createPhase, deontologyMessages } from '../study.js';
+import { createMeeting, createPhase } from '../study.js';
 import { renderTimeline } from './timeline.js';
 
 const SAVE_STATUS = {
@@ -33,19 +31,9 @@ export function renderEditor(container, { store, navigation, studyId }) {
 
   // ---------- Live update ----------
   const preview = el('aside', { className: 'ech-preview' });
-  const deontologyBox = el('div', { className: 'ech-inline-alerts' });
 
   function refresh() {
     renderTimeline(preview, study, today);
-    deontologyBox.replaceChildren(
-      ...deontologyMessages(study.deontology).map((message) =>
-        el(
-          'div',
-          { className: `ech-alert ech-alert-${message.level}` },
-          message.text,
-        ),
-      ),
-    );
   }
 
   function changed() {
@@ -56,6 +44,27 @@ export function renderEditor(container, { store, navigation, studyId }) {
   // ---------- Field helpers ----------
   let fieldCount = 0;
   const nextId = () => `ech-field-${++fieldCount}`;
+
+  function inputField(label, props, get, set, hint) {
+    const id = nextId();
+    return el(
+      'div',
+      { className: 'ech-field' },
+      el('label', { htmlFor: id }, label),
+      el('input', {
+        id,
+        ...props,
+        value: get(),
+        on: {
+          input: (event) => {
+            set(event.target.value);
+            changed();
+          },
+        },
+      }),
+      hint ? el('span', { className: 'ech-hint' }, hint) : null,
+    );
+  }
 
   function dateField(label, get, set, hint) {
     const id = nextId();
@@ -121,19 +130,6 @@ export function renderEditor(container, { store, navigation, studyId }) {
         },
       }),
       label,
-    );
-  }
-
-  // Checkbox bound to "is this id in that list?"
-  function listCheckbox(label, list, id) {
-    return checkbox(
-      label,
-      () => list.includes(id),
-      (checked) => {
-        const index = list.indexOf(id);
-        if (checked && index === -1) list.push(id);
-        if (!checked && index !== -1) list.splice(index, 1);
-      },
     );
   }
 
@@ -224,6 +220,83 @@ export function renderEditor(container, { store, navigation, studyId }) {
       },
     },
     '+ Ajouter une phase',
+  );
+
+  // ---------- RDV client ----------
+  const meetingsList = el('div', { className: 'ech-phases' });
+
+  function renderMeetings() {
+    meetingsList.replaceChildren(
+      ...study.meetings.map((meeting, index) =>
+        el(
+          'div',
+          { className: 'ech-phase' },
+          el(
+            'div',
+            { className: 'ech-phase-head' },
+            el('span', { className: 'ech-phase-title' }, `RDV ${index + 1}`),
+            el(
+              'button',
+              {
+                type: 'button',
+                className: 'ech-button-ghost',
+                title: `Retirer le RDV ${index + 1}`,
+                attrs: { 'aria-label': `Retirer le RDV ${index + 1}` },
+                on: {
+                  click: () => {
+                    study.meetings.splice(index, 1);
+                    renderMeetings();
+                    changed();
+                  },
+                },
+              },
+              '✕',
+            ),
+          ),
+          el(
+            'div',
+            { className: 'ech-meeting-fields' },
+            dateField(
+              'Date',
+              () => meeting.date,
+              (value) => (meeting.date = value),
+            ),
+            inputField(
+              'Heure (facultative)',
+              { type: 'time' },
+              () => meeting.time,
+              (value) => (meeting.time = value),
+            ),
+            inputField(
+              'Objet',
+              {
+                type: 'text',
+                maxLength: MEETING_SUBJECT_MAX_LENGTH,
+                placeholder: "point d'avancement",
+              },
+              () => meeting.subject,
+              (value) => (meeting.subject = value),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  const addMeetingButton = el(
+    'button',
+    {
+      type: 'button',
+      className: 'ech-button-link',
+      on: {
+        click: () => {
+          study.meetings.push(createMeeting(crypto.randomUUID()));
+          renderMeetings();
+          changed();
+        },
+      },
+    },
+    '+ Ajouter un RDV client',
   );
 
   // ---------- Header ----------
@@ -322,8 +395,6 @@ export function renderEditor(container, { store, navigation, studyId }) {
   );
 
   // ---------- Form ----------
-  const deontology = study.deontology;
-
   const form = el(
     'div',
     { className: 'ech-form' },
@@ -349,42 +420,22 @@ export function renderEditor(container, { store, navigation, studyId }) {
     ),
 
     section(
+      'RDV client',
+      el(
+        'p',
+        { className: 'ech-hint' },
+        "Vos rendez-vous avec le client (point d'avancement, présentation…). Ils apparaissent dans l'aperçu et dans l'export. Objet neutre : jamais le nom du client.",
+      ),
+      meetingsList,
+      addMeetingButton,
+    ),
+
+    section(
       '1. Avant la signature',
       dateField(
-        'Date du RDV client',
+        'Date du premier RDV client',
         () => study.rdvDate,
         (value) => (study.rdvDate = value),
-      ),
-      subsection(
-        'Préparation du RDV',
-        el(
-          'div',
-          { className: 'ech-checks-inline' },
-          RDV_CHECKLIST.map((item) =>
-            checkbox(
-              item.label,
-              () => study.rdvChecklist[item.id],
-              (value) => (study.rdvChecklist[item.id] = value),
-            ),
-          ),
-        ),
-        el('p', { className: 'ech-hint' }, `Rappel : ${RDV_REMINDER}`),
-      ),
-      subsection(
-        'Test de déontologie',
-        el('p', { className: 'ech-hint' }, "L'étude comporte :"),
-        DEONTOLOGY_FORBIDDEN.map((item) =>
-          listCheckbox(item.label, deontology.forbidden, item.id),
-        ),
-        DEONTOLOGY_CONDITIONAL.map((item) =>
-          listCheckbox(item.label, deontology.conditional, item.id),
-        ),
-        checkbox(
-          "Lien avec un enseignement de l'école (obligatoire)",
-          () => deontology.teachingLink,
-          (value) => (deontology.teachingLink = value),
-        ),
-        deontologyBox,
       ),
       subsection(
         'Propale',
@@ -411,10 +462,17 @@ export function renderEditor(container, { store, navigation, studyId }) {
         () => study.ceDate,
         (value) => (study.ceDate = value),
       ),
-      checkbox(
-        'Client à risque (acompte de 50 %)',
-        () => study.clientAtRisk,
-        (value) => (study.clientAtRisk = value),
+      inputField(
+        "Taux d'acompte (%)",
+        {
+          type: 'number',
+          min: DEPOSIT_RATE.min,
+          max: DEPOSIT_RATE.max,
+          step: 1,
+        },
+        () => study.depositRate ?? '',
+        (value) => (study.depositRate = value === '' ? null : Number(value)),
+        `${DEPOSIT_RATE.default} % en général, jamais 100 %.`,
       ),
       checkbox(
         'Chef de projet rétribué (RDM du chef de projet)',
@@ -469,6 +527,7 @@ export function renderEditor(container, { store, navigation, studyId }) {
   );
 
   renderPhases();
+  renderMeetings();
   refresh();
   container.replaceChildren(
     header,

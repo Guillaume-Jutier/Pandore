@@ -1,5 +1,6 @@
 // Turns a study's deadlines into an .ics file.
 import { buildCalendar } from '../../shared/ics.js';
+import { MEETING_DURATION_HOURS } from './rules.js';
 import { computeSchedule } from './schedule.js';
 
 export function icsFileName(study) {
@@ -16,6 +17,8 @@ export function studyToIcs(study, now = new Date()) {
     events: events.map((event) => ({
       uid: `${study.id}-${event.id}@pandore`,
       date: event.date,
+      time: event.time,
+      durationHours: MEETING_DURATION_HOURS,
       summary: event.title,
       description: event.note,
     })),

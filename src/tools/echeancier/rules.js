@@ -8,45 +8,6 @@ export const CHANNELS = [
   { id: 'appel-offre-cnje', label: "Appel d'offre CNJE" },
 ];
 
-export const RDV_CHECKLIST = [
-  { id: 'besoins', label: 'Besoins' },
-  { id: 'enjeux', label: 'Enjeux' },
-  { id: 'budget', label: 'Budget' },
-  { id: 'echeancier', label: 'Échéancier' },
-  { id: 'risques', label: 'Risques' },
-];
-
-export const RDV_REMINDER = 'Pas de budget précis au RDV.';
-
-export const DEONTOLOGY_FORBIDDEN = [
-  { id: 'vente-produit', label: 'Vente de produit' },
-  { id: 'maintenance', label: 'Contrat de maintenance' },
-  { id: 'base-prospects', label: "Constitution d'une base de prospects" },
-  {
-    id: 'domaine-reglemente',
-    label: 'Domaine réglementé (juridique, comptable, médical)',
-  },
-];
-
-export const DEONTOLOGY_CONDITIONAL = [
-  {
-    id: 'traduction',
-    label: 'Traduction',
-    condition: "Possible uniquement si l'école enseigne la langue.",
-  },
-  {
-    id: 'prospection',
-    label: 'Prospection',
-    condition: 'Possible uniquement si elle est intégrée à une étude plus complète.',
-  },
-  {
-    id: 'apport-partenaire',
-    label: 'Apport par un partenaire',
-    condition:
-      'Possible avec une clause de communication et un cahier des charges rédigé par AJC.',
-  },
-];
-
 export const PROPALE_CHECKS = [
   { id: 'budget', label: 'Budget validé par le Vice-trésorier' },
   { id: 'numero', label: 'Numéro demandé au Secrétaire général' },
@@ -58,7 +19,12 @@ export const DELIVERABLE_TYPES = {
   autre: { label: 'Autres livrables', warrantyMonths: 3 },
 };
 
-export const DEPOSIT_RATE = { normal: 30, risk: 50 };
+// Deposit (acompte): 60 % by default, adjustable per study, never 100 %.
+export const DEPOSIT_RATE = { default: 60, min: 1, max: 99 };
+
+// Client meetings added by the project manager
+export const MEETING_SUBJECT_MAX_LENGTH = 80;
+export const MEETING_DURATION_HOURS = 1;
 
 // Delays, in days unless stated otherwise
 export const DELAYS = {

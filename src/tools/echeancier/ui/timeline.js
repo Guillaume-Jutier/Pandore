@@ -11,7 +11,14 @@ function eventRow(event, today) {
   return el(
     'li',
     { className: `ech-event${isPast ? ' ech-event-past' : ''}` },
-    el('span', { className: 'ech-event-date' }, formatDateFr(event.date)),
+    el(
+      'span',
+      { className: 'ech-event-date' },
+      formatDateFr(event.date),
+      event.time
+        ? el('span', { className: 'ech-event-time' }, event.time.replace(':', ' h '))
+        : null,
+    ),
     el(
       'span',
       { className: 'ech-event-body' },

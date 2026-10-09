@@ -7,12 +7,13 @@ import {
   adjustForNonWorkingDay,
   isValidISODate,
 } from '../../shared/dates.js';
-import { deontologyMessages } from './study.js';
+import { isValidDepositRate, isValidTime } from './study.js';
 import {
   DELAYS,
   DELIVERABLE_TYPES,
   DEPOSIT_RATE,
   GROUPS,
+  MEETING_SUBJECT_MAX_LENGTH,
   PROPALE_CHECKS,
 } from './rules.js';
 
@@ -26,7 +27,10 @@ function placeDate(rawDate, kind, rule) {
   if (kind === 'fixed' || rule === 'keep') {
     return { date: rawDate, shifted: false };
   }
-  return adjustForNonWorkingDay(rawDate, kind === 'deadline' ? 'previous' : rule);
+  return adjustForNonWorkingDay(
+    rawDate,
+    kind === 'deadline' ? 'previous' : rule,
+  );
 }
 
 export function computeSchedule(study) {
@@ -35,7 +39,7 @@ export function computeSchedule(study) {
   const warnings = [];
   const rule = study.nonWorkingDayRule ?? 'next';
 
-  function add(id, group, label, rawDate, kind, note = '') {
+  function add(id, group, label, rawDate, kind, note = '', time = '') {
     const { date, shifted } = placeDate(rawDate, kind, rule);
     events.push({
       id,
@@ -43,6 +47,7 @@ export function computeSchedule(study) {
       label,
       title: `Étude ${study.propaleNumber} : ${label}`,
       date,
+      time, // "" = all day, otherwise "HH:MM"
       originalDate: rawDate,
       shifted,
       note,
@@ -56,7 +61,6 @@ export function computeSchedule(study) {
       text: "Appel d'offre CNJE : répondre vite, la première Junior qui répond récupère l'étude.",
     });
   }
-  warnings.push(...deontologyMessages(study.deontology));
 
   if (has(study.rdvDate)) {
     let sendDate;
@@ -64,7 +68,11 @@ export function computeSchedule(study) {
       sendDate = study.propaleSentDate;
       add('propale-envoi', 'avant', 'propale envoyée', sendDate, 'fixed');
     } else {
-      const planned = placeDate(addDays(study.rdvDate, DELAYS.propaleAfterRdv), 'action', rule);
+      const planned = placeDate(
+        addDays(study.rdvDate, DELAYS.propaleAfterRdv),
+        'action',
+        rule,
+      );
       sendDate = planned.date;
       add(
         'propale-envoi',
@@ -83,16 +91,28 @@ export function computeSchedule(study) {
     ];
     for (const [id, label, delay] of reminders) {
       const rawDate = addDays(sendDate, delay);
-      if (has(study.ceDate) && placeDate(rawDate, 'action', rule).date >= study.ceDate) {
+      if (
+        has(study.ceDate) &&
+        placeDate(rawDate, 'action', rule).date >= study.ceDate
+      ) {
         continue;
       }
-      add(id, 'avant', label, rawDate, 'action', 'Si la propale n’est pas encore acceptée.');
+      add(
+        id,
+        'avant',
+        label,
+        rawDate,
+        'action',
+        'Si la propale n’est pas encore acceptée.',
+      );
     }
   } else {
     missing.push({ group: 'avant', text: 'Saisir la date du RDV client' });
   }
 
-  const allPropaleChecks = PROPALE_CHECKS.every((check) => study.propaleChecks?.[check.id]);
+  const allPropaleChecks = PROPALE_CHECKS.every(
+    (check) => study.propaleChecks?.[check.id],
+  );
   if (has(study.propaleSentDate) && !allPropaleChecks) {
     warnings.push({
       level: 'warning',
@@ -103,16 +123,26 @@ export function computeSchedule(study) {
   // ---------- Pendant l'étude ----------
   if (has(study.ceDate)) {
     if (has(study.rdvDate) && study.ceDate < study.rdvDate) {
-      warnings.push({ level: 'warning', text: 'La CE est datée avant le RDV client.' });
+      warnings.push({
+        level: 'warning',
+        text: 'La CE est datée avant le RDV client.',
+      });
     }
-    const rate = study.clientAtRisk ? DEPOSIT_RATE.risk : DEPOSIT_RATE.normal;
+    let rate = study.depositRate;
+    if (!isValidDepositRate(rate)) {
+      warnings.push({
+        level: 'warning',
+        text: `Taux d'acompte invalide : saisir un pourcentage entre ${DEPOSIT_RATE.min} et ${DEPOSIT_RATE.max}. ${DEPOSIT_RATE.default} % utilisé en attendant.`,
+      });
+      rate = DEPOSIT_RATE.default;
+    }
     add(
       'acompte',
       'pendant',
       `facture d'acompte (${rate} %)`,
       study.ceDate,
       'fixed',
-      '30 % en général, 50 % si client à risque, jamais 100 %.',
+      `${DEPOSIT_RATE.default} % en général, jamais 100 %.`,
     );
     if (study.projectManagerPaid) {
       add(
@@ -125,7 +155,10 @@ export function computeSchedule(study) {
       );
     }
   } else {
-    missing.push({ group: 'pendant', text: 'Saisir la date de signature de la CE' });
+    missing.push({
+      group: 'pendant',
+      text: 'Saisir la date de signature de la CE',
+    });
   }
 
   const phases = study.phases ?? [];
@@ -135,11 +168,17 @@ export function computeSchedule(study) {
   phases.forEach((phase, index) => {
     const n = index + 1;
     if (!has(phase.start) || !has(phase.end)) {
-      missing.push({ group: 'pendant', text: `Phase ${n} : saisir le début et la fin` });
+      missing.push({
+        group: 'pendant',
+        text: `Phase ${n} : saisir le début et la fin`,
+      });
       return;
     }
     if (phase.end < phase.start) {
-      warnings.push({ level: 'warning', text: `Phase ${n} : la fin est avant le début.` });
+      warnings.push({
+        level: 'warning',
+        text: `Phase ${n} : la fin est avant le début.`,
+      });
       return;
     }
     if (has(study.ceDate) && phase.start < study.ceDate) {
@@ -212,7 +251,9 @@ export function computeSchedule(study) {
     add(
       'pvrf',
       'fin',
-      planned ? "signature du PVRF (prévue à la fin d'étude)" : 'signature du PVRF',
+      planned
+        ? "signature du PVRF (prévue à la fin d'étude)"
+        : 'signature du PVRF',
       pvrf,
       'fixed',
       'Après la remise des livrables. Émettre la facture de solde.',
@@ -232,7 +273,8 @@ export function computeSchedule(study) {
       'fixed',
       'Solde payable sous 30 jours. AJC reste propriétaire des travaux jusqu’au paiement complet.',
     );
-    const deliverable = DELIVERABLE_TYPES[study.deliverableType] ?? DELIVERABLE_TYPES.rapport;
+    const deliverable =
+      DELIVERABLE_TYPES[study.deliverableType] ?? DELIVERABLE_TYPES.rapport;
     add(
       'garantie',
       'fin',
@@ -276,9 +318,47 @@ export function computeSchedule(study) {
     );
   }
 
-  // Sort by date; same-day events keep the order in which they were added.
-  events.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  // ---------- RDV client ----------
+  // Placed in the stage matching their date. Never moved: the date was agreed with the client.
+  (study.meetings ?? []).forEach((meeting, index) => {
+    const n = index + 1;
+    if (!has(meeting.date)) {
+      missing.push({
+        group: meetingGroup(study, ''),
+        text: `RDV client ${n} : saisir la date`,
+      });
+      return;
+    }
+    const subject = String(meeting.subject ?? '')
+      .trim()
+      .slice(0, MEETING_SUBJECT_MAX_LENGTH);
+    const time = isValidTime(meeting.time) ? meeting.time : '';
+    add(
+      `rdv-${meeting.id}`,
+      meetingGroup(study, meeting.date),
+      subject ? `RDV client : ${subject}` : 'RDV client',
+      meeting.date,
+      'fixed',
+      '',
+      time,
+    );
+  });
+
+  // Sort by date, then by time (all-day first); otherwise keep the insertion order.
+  const sortKey = (event) => `${event.date} ${event.time}`;
+  events.sort((a, b) =>
+    sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0,
+  );
   return { events, missing, warnings };
+}
+
+// Stage of a client meeting, from its date: before the CE, during the study,
+// or after the PVRF.
+function meetingGroup(study, date) {
+  if (!has(date) || !has(study.ceDate) || date < study.ceDate) return 'avant';
+  const pvrf = has(study.pvrfDate) ? study.pvrfDate : study.studyEndDate;
+  if (has(pvrf) && date > pvrf) return 'apres';
+  return 'pendant';
 }
 
 // Where the study stands today, for the list of studies.

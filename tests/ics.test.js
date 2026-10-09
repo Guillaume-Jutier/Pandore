@@ -81,11 +81,28 @@ describe('buildCalendar', () => {
   });
 });
 
+describe('événement avec une heure (RDV client)', () => {
+  const ics = calendar([
+    { uid: 'rdv@pandore', date: '2026-11-04', time: '10:30', summary: 'Étude 2026-014 : RDV client' },
+  ]);
+
+  it("commence à l'heure indiquée et dure 1 heure", () => {
+    expect(ics).toContain('DTSTART:20261104T103000\r\nDURATION:PT1H');
+    expect(ics).not.toContain('DTEND');
+  });
+
+  it('bloque le créneau et rappelle 1 heure avant', () => {
+    expect(ics).toContain('TRANSP:OPAQUE');
+    expect(ics).toContain('TRIGGER:-PT1H');
+  });
+});
+
 describe("export d'une étude", () => {
   const study = {
     ...createStudy({ id: 'abc', propaleNumber: '2026-014', rdvDate: '2026-10-08' }),
     ceDate: '2026-10-20',
     phases: [{ ...createPhase('p1'), start: '2026-10-26', end: '2026-12-04', pvri: true }],
+    meetings: [{ id: 'm1', date: '2026-11-04', time: '14:00', subject: 'point' }],
     studyEndDate: '2026-12-04',
   };
   const ics = unfold(studyToIcs(study, NOW));
@@ -99,6 +116,12 @@ describe("export d'une étude", () => {
     expect(summaries.length).toBeGreaterThan(10);
     for (const summary of summaries) expect(summary.startsWith('Étude 2026-014 : ')).toBe(true);
     expect(summaries).toContain('Étude 2026-014 : relance propale 1');
+  });
+
+  it('exporte les RDV client avec leur heure', () => {
+    expect(ics).toContain('UID:abc-rdv-m1@pandore');
+    expect(ics).toContain('DTSTART:20261104T140000');
+    expect(ics).toContain('SUMMARY:Étude 2026-014 : RDV client : point');
   });
 
   it("donne un identifiant stable par échéance (réimport sans doublon)", () => {

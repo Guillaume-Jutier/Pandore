@@ -5,9 +5,9 @@ import {
   studyStage,
 } from '../src/tools/echeancier/schedule.js';
 import {
+  createMeeting,
   createPhase,
   createStudy,
-  deontologyMessages,
   isValidPropaleNumber,
 } from '../src/tools/echeancier/study.js';
 
@@ -129,48 +129,23 @@ describe('avant la signature', () => {
   });
 });
 
-describe('test de déontologie', () => {
-  it('interdit : alerte rouge', () => {
-    const messages = deontologyMessages({
-      forbidden: ['vente-produit'],
-      conditional: [],
-      teachingLink: true,
-    });
-    expect(messages).toEqual([
-      expect.objectContaining({ level: 'danger', text: expect.stringContaining('vente de produit') }),
-    ]);
-  });
-
-  it('sous conditions : simple avertissement avec la condition', () => {
-    const messages = deontologyMessages({
-      forbidden: [],
-      conditional: ['traduction'],
-      teachingLink: true,
-    });
-    expect(messages).toEqual([
-      { level: 'warning', text: "Traduction : Possible uniquement si l'école enseigne la langue." },
-    ]);
-  });
-
-  it('rappelle que le lien avec un enseignement est obligatoire', () => {
-    const messages = deontologyMessages({ forbidden: [], conditional: [], teachingLink: false });
-    expect(messages[0].text).toContain('enseignement');
-  });
-
-  it('aucun message si tout est conforme', () => {
-    expect(deontologyMessages({ forbidden: [], conditional: [], teachingLink: true })).toEqual([]);
-  });
-});
-
 describe("pendant l'étude", () => {
-  it("facture d'acompte de 30 % le jour de la CE", () => {
+  it("facture d'acompte de 60 % le jour de la CE", () => {
     const event = eventById(fullStudy(), 'acompte');
     expect(event.date).toBe('2026-10-20');
-    expect(event.label).toContain('30 %');
+    expect(event.label).toBe("facture d'acompte (60 %)");
   });
 
-  it("acompte de 50 % si le client est à risque", () => {
-    expect(eventById(fullStudy({ clientAtRisk: true }), 'acompte').label).toContain('50 %');
+  it("taux d'acompte modifiable pour une étude", () => {
+    expect(eventById(fullStudy({ depositRate: 40 }), 'acompte').label).toContain('40 %');
+  });
+
+  it("taux d'acompte invalide (vide, 0, 100 %) : alerte et 60 % en attendant", () => {
+    for (const depositRate of [null, 0, 100, 12.5]) {
+      const { events, warnings } = computeSchedule(fullStudy({ depositRate }));
+      expect(events.find((event) => event.id === 'acompte').label).toContain('60 %');
+      expect(warnings.some((w) => w.text.includes("Taux d'acompte invalide"))).toBe(true);
+    }
   });
 
   it('RDM du chef de projet le jour de la CE, seulement s’il est rétribué', () => {
@@ -313,6 +288,77 @@ describe("après l'étude", () => {
   it('passation 1 mois avant la fin de mandat, seulement si elle est saisie', () => {
     expect(eventById(fullStudy(), 'passation')).toBeUndefined();
     expect(dateOf(fullStudy({ mandateEndDate: '2027-01-31' }), 'passation')).toBe('2026-12-31');
+  });
+});
+
+describe('RDV client', () => {
+  function withMeetings(meetings, overrides = {}) {
+    return fullStudy({
+      meetings: meetings.map((fields, index) => ({ ...createMeeting(`m${index}`), ...fields })),
+      ...overrides,
+    });
+  }
+
+  it("ajoute un RDV à la date et à l'heure choisies, avec son objet", () => {
+    const event = eventById(
+      withMeetings([{ date: '2026-11-04', time: '10:30', subject: "point d'avancement" }]),
+      'rdv-m0',
+    );
+    expect(event).toMatchObject({
+      date: '2026-11-04',
+      time: '10:30',
+      label: "RDV client : point d'avancement",
+      title: "Étude 2026-014 : RDV client : point d'avancement",
+      shifted: false,
+    });
+  });
+
+  it('sans heure ni objet : RDV sur la journée, titre « RDV client »', () => {
+    const event = eventById(withMeetings([{ date: '2026-11-04' }]), 'rdv-m0');
+    expect(event).toMatchObject({ time: '', label: 'RDV client' });
+  });
+
+  it('une heure mal formée est ignorée', () => {
+    const event = eventById(withMeetings([{ date: '2026-11-04', time: '25:00' }]), 'rdv-m0');
+    expect(event.time).toBe('');
+  });
+
+  it("un RDV le samedi n'est jamais décalé (date convenue avec le client)", () => {
+    expect(eventById(withMeetings([{ date: '2026-11-07' }]), 'rdv-m0')).toMatchObject({
+      date: '2026-11-07',
+      shifted: false,
+    });
+  });
+
+  it("se range dans l'étape correspondant à sa date", () => {
+    const study = withMeetings([
+      { date: '2026-10-15' }, // avant la CE (20 oct.)
+      { date: '2026-11-04' }, // pendant l'étude
+      { date: '2027-01-15' }, // après le PVRF (4 déc.)
+    ]);
+    expect(eventById(study, 'rdv-m0').group).toBe('avant');
+    expect(eventById(study, 'rdv-m1').group).toBe('pendant');
+    expect(eventById(study, 'rdv-m2').group).toBe('apres');
+  });
+
+  it("demande la date d'un RDV ajouté mais pas encore daté", () => {
+    const { missing } = computeSchedule(withMeetings([{ subject: 'restitution' }]));
+    expect(missing.map((item) => item.text)).toContain('RDV client 1 : saisir la date');
+  });
+
+  it('le même jour, les RDV avec heure passent après les échéances de la journée', () => {
+    const ids = computeSchedule(withMeetings([{ date: '2026-11-13', time: '09:00' }]))
+      .events.filter((event) => event.date === '2026-11-13')
+      .map((event) => event.id);
+    expect(ids.at(-1)).toBe('rdv-m0');
+  });
+
+  it('coupe un objet trop long (80 caractères)', () => {
+    const event = eventById(
+      withMeetings([{ date: '2026-11-04', subject: 'x'.repeat(200) }]),
+      'rdv-m0',
+    );
+    expect(event.label).toBe(`RDV client : ${'x'.repeat(80)}`);
   });
 });
 
