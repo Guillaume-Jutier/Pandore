@@ -64,6 +64,23 @@ export function createStudy({
   };
 }
 
+// Completes a study read from disk with any field added in a later version
+// of Pandore, so older files keep working.
+export function normalizeStudy(raw) {
+  const defaults = createStudy({
+    id: raw.id,
+    propaleNumber: raw.propaleNumber,
+    channel: CHANNELS.some((item) => item.id === raw.channel) ? raw.channel : undefined,
+    now: raw.createdAt,
+  });
+  return {
+    ...defaults,
+    ...raw,
+    deontology: { ...defaults.deontology, ...raw.deontology },
+    phases: Array.isArray(raw.phases) ? raw.phases : [],
+  };
+}
+
 export function createPhase(id) {
   return { id, start: '', end: '', pvri: false };
 }
